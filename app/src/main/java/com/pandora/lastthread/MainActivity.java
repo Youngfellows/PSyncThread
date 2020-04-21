@@ -5,7 +5,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import java.security.PublicKey;
+import com.pandora.lastthread.bean.Student;
+import com.pandora.lastthread.threadlocal.Chinese;
+import com.pandora.lastthread.threadlocal.English;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -130,7 +133,10 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     int price = new Random().nextInt();
                     Log.d(TAG, Thread.currentThread().getName() + ",put car price: " + price);
+                    // 以当前线程为key值放入到map中，当取值时根据各自的线程取各自的数
                     mThreadData.put(Thread.currentThread(), price);
+
+                    // 在同一个线程中，不同的对象取数据
                     CarA carA = new CarA();
                     CarB carB = new CarB();
                     carA.getPrice();
@@ -148,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
 
         public int getPrice() {
             Integer price = mThreadData.get(Thread.currentThread());
-            Log.d(TAG, "CarA: getPrice, price: " + price);
+            Log.d(TAG, "CarA: " + Thread.currentThread().getName() + ",getPrice, price: " + price);
             return price;
         }
     }
@@ -161,10 +167,12 @@ public class MainActivity extends AppCompatActivity {
 
         public int getPrice() {
             Integer price = mThreadData.get(Thread.currentThread());
-            Log.d(TAG, "CarB: getPrice, price: " + price);
+            Log.d(TAG, "CarB: " + Thread.currentThread().getName() + ",getPrice, price: " + price);
             return price;
         }
     }
+
+    public static ThreadLocal<Student> mThreadLocal = new ThreadLocal<>();
 
     /**
      * ThreadLocal实现线程范围内数据的共享
@@ -172,7 +180,26 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void onThreadSharaData3(View view) {
+        for (int i = 0; i < 3; i++) {
+            final int finalI = i;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Student student = new Student();
+                    student.setName("杨过" + finalI);
+                    student.setAge(new Random().nextInt(100));
+                    student.setCity("深圳" + finalI);
+                    student.setGrade(new Random().nextDouble());
 
+                    //为当前线程设置对象
+                    mThreadLocal.set(student);
+                    Chinese chinese = new Chinese();
+                    English english = new English();
+                    chinese.getStudentInfo();
+                    english.getStudentInfo();
+                }
+            }, "thread_" + i).start();
+        }
     }
 
     /**
