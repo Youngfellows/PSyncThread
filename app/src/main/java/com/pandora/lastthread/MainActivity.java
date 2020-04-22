@@ -5,8 +5,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.pandora.lastthread.bean.Car;
+import com.pandora.lastthread.bean.DriverUser;
+import com.pandora.lastthread.bean.LatLng;
 import com.pandora.lastthread.bean.Student;
 import com.pandora.lastthread.threadlocal.Chinese;
+import com.pandora.lastthread.threadlocal.DriverBusinessA;
+import com.pandora.lastthread.threadlocal.DriverBusinessB;
 import com.pandora.lastthread.threadlocal.English;
 
 import java.util.HashMap;
@@ -208,7 +213,30 @@ public class MainActivity extends AppCompatActivity {
      * @param view
      */
     public void onThreadSharaData4(View view) {
+        for (int i = 0; i < 100; i++) {
+            final int index = i;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DriverUser driverUser = DriverUser.getInstance();
+                    driverUser.setAreaCode("+886");
+                    driverUser.setPhoneNum("10086" + index);
+                    Car car = Car.getInstance();
+                    car.setVin("BMW" + index);
+                    LatLng latLng = LatLng.getInstance();
+                    latLng.setLatitude(index);
+                    latLng.setLongitude(index);
+                    driverUser.setCar(car);
+                    driverUser.setLocation(latLng);
+                    Log.d(TAG, Thread.currentThread().getName() + " run:, set DriverUser: " + driverUser.toString());
 
+                    DriverBusinessA businessA = new DriverBusinessA();
+                    DriverBusinessB businessB = new DriverBusinessB();
+                    businessA.login();
+                    businessB.payMoney();
+                }
+            }, "thread_" + i).start();
+        }
     }
 
 }
